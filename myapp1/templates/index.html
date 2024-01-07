@@ -1,0 +1,59 @@
+<html>
+    <head>
+
+    </head>
+    <body>
+        <h3> Add Products </h3>
+        <form>
+            <table>
+                <tr>
+                    <td><input type="text"></td>
+                    <td><input type="submit"></td>
+                </tr>
+            </table>
+        </form>
+
+        <h3>Tracked Products</h3>
+        <ul>
+            {% for prod in allProd %}
+                <li>{{prod.searchText}}</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Product Prices</h3>
+        <table border = 1 cellpadding="10">
+            <tr>
+                <th>
+                    Product
+                </th>
+                <th>
+                    Price
+                </th>
+                <th>
+                    Price Change
+                </th>
+                <th>
+                    Date Added
+                </th>
+            </tr>
+            {% for prod in allProdHist %}
+                <tr>
+                    <td>
+                        <a href="{{ prod.product.url }}" > {{prod.product.title}} </a>
+                    </td>
+                    <td>
+                        <p>{{prod.price}}</p>
+                    </td>
+                    <td>
+                        <p>{{prod.priceChange}}</p>
+                    </td>
+                    <td>
+                        <p>{{prod.dateAdded}}</p>
+                    </td>
+                </tr>
+            {% endfor %}
+            
+        </table>
+        
+    </body>
+</html>
