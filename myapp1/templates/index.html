@@ -4,10 +4,11 @@
     </head>
     <body>
         <h3> Add Products </h3>
-        <form>
+        <form action="/addnewproduct" method="POST">
+            {% csrf_token %}
             <table>
                 <tr>
-                    <td><input type="text"></td>
+                    <td>{{newProdForm}}</td>
                     <td><input type="submit"></td>
                 </tr>
             </table>
@@ -20,6 +21,8 @@
             {% endfor %}
         </ul>
 
+        <a href="/refreshproducts"><button>Refresh Prices</button></a>
+        
         <h3>Product Prices</h3>
         <table border = 1 cellpadding="10">
             <tr>

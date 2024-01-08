@@ -1,5 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.db.models import Max, F
 from .models import Product, ProductHistory
+from .forms import newProdForm
 import chromedriver_autoinstaller
 import time
 import pandas as pd
@@ -73,20 +75,10 @@ def search_items(productnamelist):
 
 def addItemsToDB(scrapedItems):
 	for index, item in scrapedItems.iterrows():
-		existing_product = Product.objects.filter(searchText=item["prod_name"]).first()
-		if existing_product is None:
-            # Product doesn't exist, create a new one
-			new_product = Product(
-				searchText=item["prod_name"],
-			)
-			new_product.save()
-			curr_item = new_product
-		else:
-			curr_item = existing_product
-
-		item_history_obj = ProductHistory.objects.filter(title=item.title).first()
+		curr_item = Product.objects.filter(searchText=item["prod_name"]).first()
+		item_history_obj = ProductHistory.objects.filter(url=item.url).first()
 		if item_history_obj is None:
-			product_history = ProductHistory(
+			product_history = ProductHistory( # need to split the price as a child table to product table
 				product = curr_item,
 				title=item["title"],
 				url=item["url"],
@@ -96,10 +88,12 @@ def addItemsToDB(scrapedItems):
 			)
 			product_history.save()
 		else:
-			latest_product_history_item = ProductHistory.objects.filter(title=item.title).order_by('-dateAdded').first()
+			latest_product_history_item = ProductHistory.objects.filter(url=item.url).order_by('-dateAdded').first()
 			old_price = latest_product_history_item.price
 			product_history = ProductHistory(
 				product = curr_item,
+				title=item["title"],
+				url=item["url"],
 				price = item["price"],
 				priceChange = old_price - item["price"],
 				dateAdded = timezone.now()
@@ -108,16 +102,38 @@ def addItemsToDB(scrapedItems):
 		
 
 # Create your views here.
-def index(request):
-	scraped_items = search_items(["zephyrus g14", "oneplus 11 5g", "ryzen 7 7700x"])
+			
+def refreshProductPage(request):
+	searchItemList = list(Product.objects.all().values_list('searchText', flat=True))
+	scraped_items = search_items(searchItemList)
 	addItemsToDB(scraped_items)
+	return redirect('/index')
+
+def addProduct(request):
+	if request.method == "POST":
+		form = newProdForm(request.POST)
+		if form.is_valid():
+			text = form.cleaned_data['searchText']
+			# check if this product already exists in table
+			item = Product.objects.filter(searchText = text)
+			if(item.count()==0):
+				newProd = Product(searchText = text)
+				newProd.save()
+			else:
+				print("item already exists!")
+	return redirect('/index')
+
+def index(request):
 	allProd = Product.objects.all()
 	allProdHist = ProductHistory.objects.all()
+
+	newForm = newProdForm()
 	return render(
 		request = request,
 		template_name = "index.html",
 		context = {
 			"allProd" : allProd,
 			"allProdHist" : allProdHist,
+			"newProdForm" : newForm,
 		}
 	)

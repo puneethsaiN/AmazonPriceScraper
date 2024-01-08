@@ -20,4 +20,7 @@ from myapp1 import views as app1views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', app1views.index),
+    path('index', app1views.index),
+    path('refreshproducts', app1views.refreshProductPage),
+    path('addnewproduct', app1views.addProduct),
 ]
