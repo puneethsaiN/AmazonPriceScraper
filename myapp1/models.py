@@ -4,15 +4,15 @@ from django.db import models
 
 class Product(models.Model):
 	def __str__(self):
-		return self.title
-	title = models.CharField(max_length = 200)
+		return self.searchText
 	searchText = models.CharField(max_length = 200)
-	url = models.URLField()
 
 class ProductHistory(models.Model):
 	def __str__(self):
-		return self.product.title
+		return self.title
 	product = models.ForeignKey(Product, on_delete=models.CASCADE)
+	url = models.URLField()
+	title = models.CharField(max_length = 200)
 	price = models.FloatField()
 	priceChange = models.FloatField()
 	dateAdded = models.DateTimeField()

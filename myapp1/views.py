@@ -5,7 +5,7 @@ import time
 import pandas as pd
 from selenium.webdriver.common.by import By 
 from bs4 import BeautifulSoup
-import seleniumwire.undetected_chromedriver.v2 as wd
+import seleniumwire.undetected_chromedriver as wd
 from django.utils import timezone
 
 def makeResultList(driver, productname):
@@ -54,9 +54,9 @@ def search_items(productnamelist):
 	chromedriver_autoinstaller.install()  
 	options = {
 		'proxy': {
-        # 'http': 'http://username:password@host:port',
-        # 'https': 'https://username:password@host:port'
-    }
+        # 'http': 'http://username:password@p.webshare.io:80',
+        # 'https': 'https://username:password@p.webshare.io:80'
+    	}
 	}
 	driver = wd.Chrome(seleniumwire_options = options)
 	time.sleep(8)	
@@ -77,26 +77,26 @@ def addItemsToDB(scrapedItems):
 		if existing_product is None:
             # Product doesn't exist, create a new one
 			new_product = Product(
-				title=item["title"],
 				searchText=item["prod_name"],
-				url=item["url"],
 			)
 			new_product.save()
 			curr_item = new_product
 		else:
 			curr_item = existing_product
 
-		item_history_obj = ProductHistory.objects.filter(product__title=item.title).first()
+		item_history_obj = ProductHistory.objects.filter(title=item.title).first()
 		if item_history_obj is None:
 			product_history = ProductHistory(
 				product = curr_item,
+				title=item["title"],
+				url=item["url"],
 				price = item["price"],
 				priceChange = 0,
 				dateAdded = timezone.now(),
 			)
 			product_history.save()
 		else:
-			latest_product_history_item = ProductHistory.objects.filter(product__title=item.title).order_by('-dateAdded').first()
+			latest_product_history_item = ProductHistory.objects.filter(title=item.title).order_by('-dateAdded').first()
 			old_price = latest_product_history_item.price
 			product_history = ProductHistory(
 				product = curr_item,
@@ -109,7 +109,7 @@ def addItemsToDB(scrapedItems):
 
 # Create your views here.
 def index(request):
-	scraped_items = search_items(["zephyrus g14", "oneplus 11 5g"])
+	scraped_items = search_items(["zephyrus g14", "oneplus 11 5g", "ryzen 7 7700x"])
 	addItemsToDB(scraped_items)
 	allProd = Product.objects.all()
 	allProdHist = ProductHistory.objects.all()
